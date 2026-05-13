@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "HTTPS Downgrade",
+  "version": "1.0",
+  "description": "Redirects requests from HTTPS to HTTP for a configurable list of domains.",
+  "permissions": [
+    "webRequest",
+    "webRequestBlocking",
+    "storage"
+  ],
+  "optional_host_permissions": [
+    "*://*/*"
+  ],
+  "background": {
+    "scripts": [
+      "https-downgrade.js"
+    ]
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "action": {
+    "default_title": "HTTPS Downgrade",
+    "default_icon": {
+      "48": "img/icon-48.png",
+      "96": "img/icon-96.png"
+    }
+  },
+  "icons": {
+    "48": "img/icon-48.png",
+    "96": "img/icon-96.png"
+  },
+  "update_url": "https://jwigley.github.io/https-downgrade-firefox-extension/update.json"
+}

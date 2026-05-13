@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HTTPS Downgrade</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f5f4f0;
+      --surface: #ffffff;
+      --surface-2: #f0eeea;
+      --border: rgba(0,0,0,0.1);
+      --border-strong: rgba(0,0,0,0.18);
+      --text: #1a1918;
+      --text-muted: #6b6965;
+      --text-faint: #9c9890;
+      --accent: #1a5fb4;
+      --accent-bg: #e6f1fb;
+      --accent-text: #0c447c;
+      --danger: #a32d2d;
+      --danger-bg: #fcebeb;
+      --danger-text: #791f1f;
+      --success: #3b6d11;
+      --success-bg: #eaf3de;
+      --success-text: #27500a;
+      --radius: 10px;
+      --radius-sm: 6px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1a1918;
+        --surface: #242322;
+        --surface-2: #2c2c2a;
+        --border: rgba(255,255,255,0.08);
+        --border-strong: rgba(255,255,255,0.14);
+        --text: #f0eeea;
+        --text-muted: #9c9890;
+        --text-faint: #6b6965;
+        --accent: #5b9bd5;
+        --accent-bg: #0c2a44;
+        --accent-text: #b5d4f4;
+        --danger: #e24b4a;
+        --danger-bg: #3d1414;
+        --danger-text: #f7c1c1;
+        --success: #97c459;
+        --success-bg: #1a2e08;
+        --success-text: #c0dd97;
+      }
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 3rem 1rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 520px;
+    }
+
+    .header {
+      margin-bottom: 2.5rem;
+    }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+
+    .icon {
+      width: 36px;
+      height: 36px;
+      background: var(--accent-bg);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .icon svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--accent);
+    }
+
+    h1 {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      padding-left: 48px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+
+    .card-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-faint);
+    }
+
+    .add-row {
+      display: flex;
+      gap: 8px;
+      padding: 12px;
+    }
+
+    .input-wrap {
+      flex: 1;
+      position: relative;
+    }
+
+    .prefix {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 13px;
+      color: var(--text-faint);
+      pointer-events: none;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      height: 36px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-size: 13px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      padding: 0 10px 0 68px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--accent);
+    }
+
+    input[type="text"]::placeholder {
+      color: var(--text-faint);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    }
+
+    .btn {
+      height: 36px;
+      padding: 0 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: opacity 0.15s, background 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn:active { opacity: 0.75; }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .btn-primary:hover { opacity: 0.88; }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-muted);
+      border-color: var(--border-strong);
+    }
+
+    .btn-ghost:hover {
+      background: var(--surface-2);
+      color: var(--text);
+    }
+
+    .btn-danger-ghost {
+      background: transparent;
+      color: var(--danger);
+      border-color: transparent;
+      padding: 0 8px;
+    }
+
+    .btn-danger-ghost:hover {
+      background: var(--danger-bg);
+    }
+
+    .domain-list {
+      list-style: none;
+    }
+
+    .domain-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+
+    .domain-item:last-child { border-bottom: none; }
+    .domain-item:hover { background: var(--surface-2); }
+
+    .domain-name {
+      flex: 1;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      color: var(--text);
+    }
+
+    .domain-prefix {
+      color: var(--text-faint);
+    }
+
+    .badge {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    .badge-ok {
+      background: var(--success-bg);
+      color: var(--success-text);
+    }
+
+    .badge-warn {
+      background: var(--danger-bg);
+      color: var(--danger-text);
+    }
+
+    .empty-state {
+      padding: 2.5rem 1rem;
+      text-align: center;
+      color: var(--text-faint);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .empty-icon {
+      width: 32px;
+      height: 32px;
+      margin: 0 auto 10px;
+      opacity: 0.35;
+    }
+
+    .empty-icon svg {
+      width: 32px;
+      height: 32px;
+      stroke: var(--text);
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--text-faint);
+      padding: 10px 14px;
+      border-top: 1px solid var(--border);
+      line-height: 1.5;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(12px);
+      background: var(--surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      padding: 8px 16px;
+      font-size: 13px;
+      color: var(--text);
+      opacity: 0;
+      transition: opacity 0.2s, transform 0.2s;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .icon img {
+      height: 32px;
+      width: 32px;
+      filter: brightness(0) invert(1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-row">
+        <div class="icon">
+          <img src="img/icon.svg">
+        </div>
+        <h1>HTTPS Downgrade</h1>
+      </div>
+      <p class="subtitle">Redirects HTTPS to HTTP for configured domains. Add domain suffixes like <code style="font-family: monospace; font-size: 12px;">lan</code> or <code style="font-family: monospace; font-size: 12px;">local</code>.</p>
+      <p class="subtitle">After adding, Firefox will prompt you to grant the necessary permissions.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header">Add domain</div>
+      <div class="add-row">
+        <div class="input-wrap">
+          <span class="prefix">*://&thinsp;*.</span>
+          <input type="text" id="input" placeholder="lan, local, home…" autocomplete="off" spellcheck="false" />
+        </div>
+        <button class="btn btn-primary" id="save">Add</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">Domains</div>
+      <ul class="domain-list" id="list"></ul>
+      <div class="empty-state" id="empty">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2"/>
+            <path d="M8 21h8M12 17v4"/>
+          </svg>
+        </div>
+        No domains added yet
+      </div>
+      <div class="hint" id="hint" style="display:none">Firefox keeps revoked permissions visible as disabled. Use Re-grant to restore access.</div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="options.js"></script>
+</body>
+</html>
