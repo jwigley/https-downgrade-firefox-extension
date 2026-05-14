@@ -1,0 +1,12 @@
+{
+  "addons": {
+    "jwigley@gmail.com": {
+      "updates": [
+        {
+          "version": "1.0.0",
+          "update_link": "https://github.com/jwigley/https-downgrade-firefox-extension/releases/download/v1.0.0/55a6174ead3244088125-1.0.0.xpi"
+        }
+      ]
+    }
+  }
+}
